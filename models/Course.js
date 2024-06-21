@@ -56,15 +56,15 @@ const schema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  basePrice:{
-    type:Number,
+  basePrice: {
+    type: Number,
     required: true,
   },
-  discountedPercent:{ 
-    type:Number,
+  discountedPercent: {
+    type: Number,
     required: true,
   },
-  total_duration:{
+  total_duration: {
     type: String,
     required: true,
   },
@@ -72,6 +72,12 @@ const schema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  assignments: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Assignment",
+    },
+  ],
 });
 
 export const Course = mongoose.model("Course", schema);

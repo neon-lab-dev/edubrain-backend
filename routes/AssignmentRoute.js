@@ -6,6 +6,7 @@ import {
   deleteAssignment,
   getAllAssignments,
   getAssignment,
+  getAssignmentsByCourseId,
   updateAssignment,
 } from "../controllers/assignmentController.js";
 
@@ -14,7 +15,10 @@ import { authorizeAdmin, isAuthenticated } from "../middlewares/auth.js";
 const router = express.Router();
 
 //get all Assignments
-router.route("/assignments").get(getAllAssignments);
+router.route("/assignments").get(isAuthenticated, getAllAssignments);
+
+//get user assignments by courseId
+router.route("/assignments/:id").get(isAuthenticated, getAssignmentsByCourseId);
 
 //create Assignment
 router
@@ -24,8 +28,8 @@ router
 //Update, Delete, and Get Assignment
 router
   .route("/assignment/:id")
-  .get(getAssignment)
+  .get(isAuthenticated, getAssignment)
   .delete(isAuthenticated, authorizeAdmin, deleteAssignment)
   .put(isAuthenticated, authorizeAdmin, singleUpload, updateAssignment);
 
-  export default router;
+export default router;

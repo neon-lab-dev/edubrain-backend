@@ -23,8 +23,11 @@ const solutionSchema = new mongoose.Schema({
   },
   submissionStatus: {
     type: String,
-    enum: ["Submitted", "Completed"],
+    enum: ["Submitted", "Approved", "Rejected"],
     default: "Submitted",
+  },
+  feedback: {
+    type: String,
   },
 });
 

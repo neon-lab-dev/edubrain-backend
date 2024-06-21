@@ -5,7 +5,7 @@ const schema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  questions: [String], 
+  questions: [String],
   file_details: {
     fileName: String,
     fileSize: Number,
@@ -15,6 +15,10 @@ const schema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  courseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Course",
   },
 });
 

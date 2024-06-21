@@ -3,7 +3,7 @@ import ErrorHandler from "../utils/errorHandler.js";
 import { catchAsyncError } from "../middlewares/catchAsyncError.js";
 import { uploadFile, deleteFile, getSignedURL } from "../utils/fileStorage.js";
 
-// Get all submissions or filter by user ID 
+// Get all submissions or filter by user ID
 export const getAllSubmissions = catchAsyncError(async (req, res, next) => {
   const { userId, courseId } = req.params;
   let query = {};
@@ -17,18 +17,20 @@ export const getAllSubmissions = catchAsyncError(async (req, res, next) => {
 
 // Get a submission by ID (Specific Task) -- final
 export const getSubmission = catchAsyncError(async (req, res, next) => {
-    const { id: userId, courseId, assignmentId } = req.body;
+  const { id: userId, courseId, assignmentId } = req.body;
   const submission = await Submissions.findOne({ userId });
   if (!submission) {
     return next(new ErrorHandler("Submission not found", 404));
   }
-  const course = submission.courses.get(courseId); 
+  const course = submission.courses.get(courseId);
   if (!course) {
     return next(new ErrorHandler("Course not found in this Submission", 404));
   }
-  const assignment = course.assignments.get(assignmentId); 
+  const assignment = course.assignments.get(assignmentId);
   if (!assignment) {
-    return next(new ErrorHandler("Assignment not found in this Submission", 404));
+    return next(
+      new ErrorHandler("Assignment not found in this Submission", 404)
+    );
   }
   res.status(200).json({ assignment });
 });
@@ -49,14 +51,12 @@ export const getCourseSubmission = catchAsyncError(async (req, res, next) => {
 
 // Create a submission -- final
 export const createSubmission = catchAsyncError(async (req, res, next) => {
-  const {
-    assignmentId,
-    courseId,
-    userId,
-    solutionLink,
-    solutionText,
-    questionIndex,
-  } = req.body;
+  const { assignmentId, courseId, solutionLink, solutionText, questionIndex } =
+    req.body;
+
+  const id = req.user._id;
+  const userId = id.toString();
+
   const file = req.files && req.files["file"] ? req.files["file"][0] : null;
   let fileDetails = null;
 
@@ -78,7 +78,9 @@ export const createSubmission = catchAsyncError(async (req, res, next) => {
     (solution) => solution.questionIndex == questionIndex
   );
   if (existingSolution) {
-    return next( new ErrorHandler("Solution with that index already exists", 400));
+    return next(
+      new ErrorHandler("Solution with that index already exists", 400)
+    );
   }
 
   if (file) {
@@ -88,7 +90,6 @@ export const createSubmission = catchAsyncError(async (req, res, next) => {
       "solutions"
     );
 
-    
     fileDetails = {
       fileName: uniqueFilename,
       fileFolder: `solutions/`,
@@ -113,7 +114,8 @@ export const createSubmission = catchAsyncError(async (req, res, next) => {
 
 // Update a submission by ID
 export const updateSubmission = catchAsyncError(async (req, res, next) => {
-  const { id: userId, courseId, assignmentId, solutionId } = req.body;
+  const { courseId, assignmentId, solutionId } = req.body;
+  const { id: userId } = req.user;
   const { solutionLink, solutionText } = req.body;
   const file = req.files && req.files["file"] ? req.files["file"][0] : null;
   let fileDetails = null;
@@ -126,7 +128,9 @@ export const updateSubmission = catchAsyncError(async (req, res, next) => {
   }
   const assignment = course.assignments.get(assignmentId);
   if (!assignment) {
-    return next(new ErrorHandler("Assignment not found in this Submission", 404));
+    return next(
+      new ErrorHandler("Assignment not found in this Submission", 404)
+    );
   }
 
   const submission = assignment.solutions.id(solutionId);
@@ -134,7 +138,9 @@ export const updateSubmission = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Submission not found", 404));
   }
   if (submission.solutionFile && submission.solutionFile.fileName) {
-    await deleteFile(submission.solutionFile.fileFolder + submission.solutionFile.fileName);
+    await deleteFile(
+      submission.solutionFile.fileFolder + submission.solutionFile.fileName
+    );
   }
   if (file) {
     const uniqueFilename = `${Date.now()}_${file.originalname}`;
@@ -150,12 +156,13 @@ export const updateSubmission = catchAsyncError(async (req, res, next) => {
     };
 
     if (submission.solutionFile && submission.solutionFile.fileName) {
-      await deleteFile(submission.solutionFile.fileFolder + submission.solutionFile.fileName);
+      await deleteFile(
+        submission.solutionFile.fileFolder + submission.solutionFile.fileName
+      );
     }
 
     submission.solutionFile = fileDetails;
   }
-
 
   submission.solutionLink = solutionLink;
   submission.solutionText = solutionText;
@@ -169,7 +176,6 @@ export const updateSubmission = catchAsyncError(async (req, res, next) => {
 
 // Delete a submission by IDd
 export const deleteSubmission = catchAsyncError(async (req, res, next) => {
-  
   const { id: userId, courseId, assignmentId, solutionId } = req.body;
 
   const users = await Submissions.findOne({ userId });
@@ -180,7 +186,9 @@ export const deleteSubmission = catchAsyncError(async (req, res, next) => {
   }
   const assignment = course.assignments.get(assignmentId);
   if (!assignment) {
-    return next(new ErrorHandler("Assignment not found in this Submission", 404));
+    return next(
+      new ErrorHandler("Assignment not found in this Submission", 404)
+    );
   }
 
   const submission = assignment.solutions.id(solutionId);
@@ -188,7 +196,9 @@ export const deleteSubmission = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Submission not found", 404));
   }
   if (submission.solutionFile && submission.solutionFile.fileName) {
-    await deleteFile(submission.solutionFile.fileFolder + submission.solutionFile.fileName);
+    await deleteFile(
+      submission.solutionFile.fileFolder + submission.solutionFile.fileName
+    );
   }
   assignment.solutions.pull(submission);
   await users.save();
